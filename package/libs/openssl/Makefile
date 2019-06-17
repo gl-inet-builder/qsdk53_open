@@ -9,29 +9,37 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
 PKG_BASE:=1.0.2
-PKG_BUGFIX:=h
+PKG_BUGFIX:=m
 PKG_VERSION:=$(PKG_BASE)$(PKG_BUGFIX)
 PKG_RELEASE:=1
 PKG_USE_MIPS16:=0
 
-PKG_BUILD_PARALLEL:=1
+PKG_BUILD_PARALLEL:=0
+
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://www.openssl.org/source/ \
+	ftp://ftp.openssl.org/source/ \
 	http://www.openssl.org/source/old/$(PKG_BASE)/ \
 	ftp://ftp.funet.fi/pub/crypt/mirrors/ftp.openssl.org/source \
 	ftp://ftp.sunet.se/pub/security/tools/net/openssl/source/
-PKG_MD5SUM:=9392e65072ce4b614c1392eefc1f23d0
+PKG_HASH:=8c6ff15ec6b319b50788f42c7abc2890c08ba5a1cdcd3810eb9092deada37b0f
 
 PKG_LICENSE:=OpenSSL
 PKG_LICENSE_FILES:=LICENSE
-#PKG_BUILD_DEPENDS:=ocf-crypto-headers
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_ENGINE_CRYPTO \
 	CONFIG_OPENSSL_ENGINE_DIGEST \
 	CONFIG_OPENSSL_WITH_EC \
 	CONFIG_OPENSSL_WITH_EC2M \
-	CONFIG_OPENSSL_WITH_SSL3
+	CONFIG_OPENSSL_WITH_SSL3 \
+	CONFIG_OPENSSL_HARDWARE_SUPPORT \
+	CONFIG_OPENSSL_WITH_DEPRECATED \
+	CONFIG_OPENSSL_WITH_DTLS \
+	CONFIG_OPENSSL_WITH_COMPRESSION \
+	CONFIG_OPENSSL_WITH_NPN \
+	CONFIG_OPENSSL_WITH_PSK \
+	CONFIG_OPENSSL_WITH_SRP
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -61,7 +69,7 @@ $(call Package/openssl/Default)
   SECTION:=libs
   SUBMENU:=SSL
   CATEGORY:=Libraries
-  DEPENDS:=+zlib
+  DEPENDS:=+OPENSSL_WITH_COMPRESSION:zlib
   TITLE+= (libraries)
   ABI_VERSION:=$(PKG_VERSION)
   MENU:=1
@@ -90,8 +98,9 @@ This package contains the OpenSSL command-line utility.
 endef
 
 
-OPENSSL_NO_CIPHERS:= no-idea no-md2 no-mdc2 no-rc5 no-sha0 no-camellia no-krb5
-OPENSSL_OPTIONS:= shared no-err no-hw zlib-dynamic no-sse2 no-ssl2
+OPENSSL_NO_CIPHERS:= no-idea no-md2 no-mdc2 no-rc5 no-sha0 no-camellia no-krb5 \
+ no-whrlpool no-whirlpool no-seed no-jpake
+OPENSSL_OPTIONS:= shared no-err no-sse2 no-ssl2 no-ssl2-method no-heartbeats
 
 ifdef CONFIG_OPENSSL_ENGINE_CRYPTO
   OPENSSL_OPTIONS += -DHAVE_CRYPTODEV
@@ -114,6 +123,36 @@ ifndef CONFIG_OPENSSL_WITH_SSL3
   OPENSSL_OPTIONS += no-ssl3
 endif
 
+ifndef CONFIG_OPENSSL_HARDWARE_SUPPORT
+  OPENSSL_OPTIONS += no-hw
+endif
+
+ifndef CONFIG_OPENSSL_WITH_DEPRECATED
+  OPENSSL_OPTIONS += no-deprecated
+endif
+
+ifndef CONFIG_OPENSSL_WITH_DTLS
+  OPENSSL_OPTIONS += no-dtls
+endif
+
+ifdef CONFIG_OPENSSL_WITH_COMPRESSION
+  OPENSSL_OPTIONS += zlib-dynamic
+else
+  OPENSSL_OPTIONS += no-comp
+endif
+
+ifndef CONFIG_OPENSSL_WITH_NPN
+  OPENSSL_OPTIONS += no-nextprotoneg
+endif
+
+ifndef CONFIG_OPENSSL_WITH_PSK
+  OPENSSL_OPTIONS += no-psk
+endif
+
+ifndef CONFIG_OPENSSL_WITH_SRP
+  OPENSSL_OPTIONS += no-srp
+endif
+
 ifeq ($(CONFIG_x86_64),y)
   OPENSSL_TARGET:=linux-x86_64-openwrt
   OPENSSL_MAKEFLAGS += LIBDIR=lib
@@ -121,15 +160,15 @@ else
   OPENSSL_OPTIONS+=no-sse2
   ifeq ($(CONFIG_mips)$(CONFIG_mipsel),y)
     OPENSSL_TARGET:=linux-mips-openwrt
-#  else ifeq ($(CONFIG_arm)$(CONFIG_armeb),y)
-#    OPENSSL_TARGET:=linux-armv4-openwrt
+  else ifeq ($(CONFIG_arm)$(CONFIG_armeb),y)
+    OPENSSL_TARGET:=linux-armv4-openwrt
   else
     OPENSSL_TARGET:=linux-generic-openwrt
     OPENSSL_OPTIONS+=no-perlasm
   endif
 endif
 
-STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(subst $(space),_,$(OPENSSL_OPTIONS))
+STAMP_CONFIGURED := $(STAMP_CONFIGURED)_$(shell echo $(OPENSSL_OPTIONS) | mkhash md5)
 
 define Build/Configure
 	[ -f $(STAMP_CONFIGURED) ] || { \
@@ -156,7 +195,8 @@ define Build/Configure
 		depend
 endef
 
-TARGET_CFLAGS += $(FPIC) -I$(CURDIR)/include
+TARGET_CFLAGS += $(FPIC) -I$(CURDIR)/include -ffunction-sections -fdata-sections
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
