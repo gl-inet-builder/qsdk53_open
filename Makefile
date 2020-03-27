@@ -59,6 +59,19 @@ endif
 clean: FORCE clean_kernel
 	 rm -rf $(BUILD_DIR) $(STAGING_DIR) $(BIN_DIR) $(BUILD_LOG_DIR)
 
+si: FORCE
+	tar xf single_img_dir_simple.tar.gz
+	rm -f $(TOPDIR)/single_img_dir/IPQ4019.ILQ.5.0/common/build/ipq/openwrt*
+	rm -f $(TOPDIR)/single_img_dir/IPQ4019.ILQ.5.0/common/build/bin/*
+	rm -f $(TOPDIR)/single_img_dir/IPQ4019.ILQ.5.0/common/build/*.log
+	cp $(TOPDIR)/bin/ipq806x/openwrt* $(TOPDIR)/single_img_dir/IPQ4019.ILQ.5.0/common/build/ipq
+	cp $(TOPDIR)/single_img_dir/IPQ4019.ILQ.5.0/common/build/*-flash.conf $(TOPDIR)/single_img_dir/IPQ4019.ILQ.5.0/common/build/ipq
+	cd single_img_dir/IPQ4019.ILQ.5.0/common/build; \
+	python pack.py -t nor -B -F appsboardconfig_premium -o ../../../b1300-nor-apps.img ./ipq; \
+	python pack.py -t norplusemmc -B -F appsboardconfig_premium -o ../../../s1300-noremmc-apps.img ./ipq; \
+	python pack.py -t norplusnand -B -F boardconfig_premium -o ../../../ap1300-nornand-full.img ./ipq; \
+	python pack.py -t norplusnand -B -F appsboardconfig_premium -o ../../../ap1300-nornand-apps.img ./ipq
+
 dirclean: clean
 	rm -rf $(STAGING_DIR_HOST) $(TOOLCHAIN_DIR) $(BUILD_DIR_HOST) $(BUILD_DIR_TOOLCHAIN)
 	rm -rf $(TMP_DIR)
