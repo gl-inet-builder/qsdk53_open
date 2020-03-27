@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# export usb_power gpio
+[ -n "$(grep "DK04" /proc/device-tree/model)" ] && model="s1300"
+[ "$model" = "s1300" ] && GPIO=35 || GPIO=0
+echo "$GPIO" > /sys/class/gpio/export
+echo "high" > /sys/class/gpio/gpio${GPIO}/direction
+
+# fix dhcp service fail to start
+dhcpd_enable=$(uci -q get dhcp.lan.ignore)
+[ "$dhcpd_enable" = 1 ] && exit 0
+while true; do
+	if [ -n "$(grep dhcp-range /var/etc/dnsmasq.conf* 2>/dev/null)" ];then
+		break
+	else
+		/etc/init.d/dnsmasq restart
+	fi
+	sleep 5
+done
+
