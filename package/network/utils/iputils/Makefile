@@ -13,10 +13,11 @@ PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-s$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://www.skbuff.net/iputils
-PKG_MD5SUM:=a36c25e9ec17e48be514dc0485e7376c
+PKG_HASH:=fd3af46c80ebb99607c2ca1f2a3608b6fe828e25bbec6e54f2afd25f6ddb6ee7
 
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-2.0+
+PKG_CPE_ID:=cpe:/a:skbuff:iputils
 
 PKG_BUILD_DEPENDS:=sysfsutils
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-s$(PKG_VERSION)
@@ -68,7 +69,7 @@ endef
 define Package/iputils-ping6
 $(call Package/iputils/Default)
   TITLE:=iputils - ping6
-  DEPENDS+= @IPV6 +libopenssl
+  DEPENDS+= @IPV6 +USE_GLIBC:libopenssl
 endef
 
 define Package/iputils-ping6/description
@@ -143,12 +144,12 @@ endef
 
 define Package/iputils-ping/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ping $(1)/usr/bin/
+	$(INSTALL_SUID) $(PKG_BUILD_DIR)/ping $(1)/usr/bin/
 endef
 
 define Package/iputils-ping6/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ping6 $(1)/usr/bin/
+	$(INSTALL_SUID) $(PKG_BUILD_DIR)/ping6 $(1)/usr/bin/
 endef
 
 define Package/iputils-tftpd/install
@@ -168,7 +169,7 @@ endef
 
 define Package/iputils-traceroute6/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/traceroute6 $(1)/usr/bin/
+	$(INSTALL_SUID) $(PKG_BUILD_DIR)/traceroute6 $(1)/usr/bin/
 endef
 
 $(eval $(call BuildPackage,iputils-arping))
