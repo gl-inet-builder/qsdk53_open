@@ -8,29 +8,27 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=json-c
-PKG_VERSION:=0.12
+PKG_VERSION:=0.12.1
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-nodoc.tar.gz
 PKG_SOURCE_URL:=https://s3.amazonaws.com/json-c_releases/releases/
-PKG_MD5SUM:=3ca4bbb881dfc4017e8021b5e0a8c491
+PKG_HASH:=5a617da9aade997938197ef0f8aabd7f97b670c216dc173977e1d56eef9e1291
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_SOURCE_SUBDIR)
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:json-c_project:json-c
 
 PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 
-PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
 
-TARGET_CFLAGS += $(FPIC)
-
-CONFIGURE_ARGS += \
-	ac_cv_func_strdup=yes \
-	ac_cv_func_strncasecmp=yes \
-	ac_cv_func_snprintf=yes
+TARGET_CFLAGS += $(FPIC) -Wno-implicit-fallthrough
 
 define Package/libjson-c
   SECTION:=libs
