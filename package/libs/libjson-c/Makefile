@@ -13,7 +13,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-nodoc.tar.gz
 PKG_SOURCE_URL:=https://s3.amazonaws.com/json-c_releases/releases/
-PKG_HASH:=5a617da9aade997938197ef0f8aabd7f97b670c216dc173977e1d56eef9e1291
+PKG_HASH:=5b91ab230d9b6b0ee20fc19cf25094f5
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_SOURCE_SUBDIR)
 
@@ -27,8 +27,11 @@ PKG_INSTALL:=1
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 
 TARGET_CFLAGS += $(FPIC) -Wno-implicit-fallthrough
+HOST_CFLAGS += -Wno-implicit-fallthrough
+HOST_BUILD_PREFIX:=$(STAGING_DIR_HOST)
 
 define Package/libjson-c
   SECTION:=libs
@@ -56,3 +59,4 @@ define Package/libjson-c/install
 endef
 
 $(eval $(call BuildPackage,libjson-c))
+$(eval $(call HostBuild))
