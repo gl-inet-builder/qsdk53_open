@@ -14,6 +14,7 @@
 /files
 /package/feeds
 /package/openwrt-packages
+/qca/src/linux-4.4/user_headers/
 key-build*
 *.orig
 *.rej

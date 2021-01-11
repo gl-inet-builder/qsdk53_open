@@ -69,10 +69,10 @@ $(eval $(call TestHostCommand,zlib, \
 	echo 'int main(int argc, char **argv) { gzdopen(0, "rb"); return 0; }' | \
 		gcc -include zlib.h -x c -o $(TMP_DIR)/a.out - -lz))
 
-$(eval $(call TestHostCommand,libssl, \
-	Please install the openssl library (with development headers), \
-	echo 'int main(int argc, char **argv) { SSL_library_init(); return 0; }' | \
-		gcc $(HOST_CFLAGS) -include openssl/ssl.h -x c -o $(TMP_DIR)/a.out - -lcrypto -lssl $(HOST_LDFLAGS)))
+# $(eval $(call TestHostCommand,libssl, \
+# 	Please install the openssl library (with development headers), \
+# 	echo 'int main(int argc, char **argv) { SSL_library_init(); return 0; }' | \
+# 		gcc $(HOST_CFLAGS) -include openssl/ssl.h -x c -o $(TMP_DIR)/a.out - -lcrypto -lssl $(HOST_LDFLAGS)))
 
 
 $(eval $(call SetupHostCommand,tar,Please install GNU 'tar', \
@@ -154,8 +154,8 @@ $(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.6.5, \
 $(eval $(call SetupHostCommand,file,Please install the 'file' package, \
 	file --version 2>&1 | grep file))
 
-$(eval $(call SetupHostCommand,openssl,Please install the 'openssl' utility, \
-	openssl version | grep OpenSSL))
+# $(eval $(call SetupHostCommand,openssl,Please install the 'openssl' utility, \
+# 	openssl version | grep OpenSSL))
 
 $(STAGING_DIR_HOST)/bin/mkhash: $(SCRIPT_DIR)/mkhash.c
 	mkdir -p $(dir $@)
